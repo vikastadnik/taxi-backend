@@ -14,6 +14,19 @@ router.get('/services', function (req, res, next) {
     })
 });
 
+router.post('/services', function (req, res, next) {
+
+    service.addNewTaxi(req)
+        .then(function () {
+            res.status(201);
+            res.send();
+        })
+        .catch(function (err) {
+            res.status(500);
+            res.json({'error': true, 'data': err});
+        })
+});
+
 router.get('/services/:id', function (req, res, next) {
 
 
@@ -21,7 +34,21 @@ router.get('/services/:id', function (req, res, next) {
         .then(function (data) {
             res.json(data);
         })
-        .catch(function () {
+        .catch(function (err) {
+            res.status(500);
+            res.json({'error': true, 'message': 'Ошибка при получении данных', 'data': err});
+        })
+});
+
+router.put('/services/:id', function (req, res, next) {
+
+
+    service.editTaxi(req)
+        .then(function () {
+            res.status(202);
+            res.send();
+        })
+        .catch(function (err) {
             res.status(500);
             res.json({'error': true, 'message': 'Ошибка при получении данных', 'data': err});
         })
@@ -41,8 +68,14 @@ router.post('/services/comments', function (req, res, next) {
 });
 router.get('/calculate', function (req, res, next) {
 
-    service.calcCost(req, res, function (err, results, data) {
-        res.send(results);
-    });
+    service.calcCost(req, res)
+        .then(function (data) {
+            res.json(data);
+        })
+        .catch(function (err) {
+            res.status(500);
+            console.log(err);
+            res.json({'error': true, 'data': err});
+        })
 });
 module.exports = router;

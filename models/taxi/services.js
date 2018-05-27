@@ -8,8 +8,6 @@ var mysql = require("../db.js"),
 
 var request = require('request');
 var querystring = require('querystring');
-var urls = [];
-var results = [];
 
 
 var taxi = function () {
@@ -40,7 +38,7 @@ taxi.prototype.getTaxiByID = function (req) {
                 reject(err);
             } else {
 
-                var queryComment = "select c.*, u.firstName, u.lastName from taxi_comment c  join users u ON c.user_id = u.id where c.taxi_id = ?";
+                var queryComment = "select c.*, u.firstName, u.lastName from taxi_comment c  join users u ON c.user_id = u.id where c.taxi_id = ? order by date desc";
 
                 mysqlPool.query(queryComment, id, function (err, rowsComment) {
                     if (err) {
@@ -60,9 +58,7 @@ taxi.prototype.getTaxiByID = function (req) {
 }
 
 taxi.prototype.addNewComment = function (req, res) {
-
     return new Promise(function (resolve, reject) {
-
         var user_id = req.body.user_id;
         var taxi_id = req.body.taxi_id;
         var text = req.body.text;
@@ -83,13 +79,11 @@ taxi.prototype.addNewComment = function (req, res) {
                 mysqlPool.query(queryComment, user_id, function (err, data) {
                     if (err) {
                         reject(err)
-                    } else{
-                        console.log(data);
-
-                        if ( data.length===0){
+                    } else {
+                        if (data.length === 0) {
                             reject(err);
                         }
-                        else{
+                        else {
                             var newComment = {
                                 "taxi_id": taxi_id,
                                 "text": text,
@@ -97,11 +91,9 @@ taxi.prototype.addNewComment = function (req, res) {
                                 "date": date,
                                 "firstName": data[0].firstName,
                                 "lastName": data[0].lastName
-                            }
+                            };
                             resolve(newComment);
                         }
-
-
                     }
 
                 })
@@ -110,68 +102,156 @@ taxi.prototype.addNewComment = function (req, res) {
             }
         });
     });
+};
 
+taxi.prototype.addNewTaxi = function (req) {
+    return new Promise(function (resolve, reject) {
+        var query = "INSERT INTO `taxis` (`name`, `logo`, `type`, `query_id`, `website`, `phone_number`, `short_description`, `min_cost`, `one_cost`, `surb_cost`, `animal_cost`, `premium_cost`) VALUES ?";
+
+        var name = req.body.name;
+        var logo = req.body.logo;
+        var type = req.body.type;
+        var query_id = req.body.query_id;
+        var website = req.body.website;
+        var phone_number = req.body.phone_number;
+        var short_description = req.body.short_description;
+        var min_cost = req.body.min_cost;
+        var one_cost = req.body.one_cost;
+        var surb_cost = req.body.surb_cost;
+        var animal_cost = req.body.animal_cost;
+        var premium_cost = req.body.premium_cost;
+
+
+        var newTaxi = [[
+            name,
+            logo,
+            type,
+            query_id,
+            website,
+            phone_number,
+            short_description,
+            min_cost,
+            one_cost,
+            surb_cost,
+            animal_cost,
+            premium_cost
+        ]];
+
+        mysqlPool.query(query, [newTaxi], function (err, rows) {
+            if (err) {
+                reject(err);
+            } else {
+                resolve();
+            }
+        });
+    });
+}
+
+taxi.prototype.editTaxi = function (req) {
+    return new Promise(function (resolve, reject) {
+
+        let taxi_id = req.params.id;
+
+        let query = `UPDATE taxis SET ? WHERE taxis.id = ${taxi_id}`;
+
+
+        var name = req.body.name;
+        var logo = req.body.logo;
+        var type = req.body.type;
+        var query_id = req.body.query_id;
+        var website = req.body.website;
+        var phone_number = req.body.phone_number;
+        var short_description = req.body.short_description;
+        var min_cost = req.body.min_cost;
+        var one_cost = req.body.one_cost;
+        var surb_cost = req.body.surb_cost;
+        var animal_cost = req.body.animal_cost;
+        var premium_cost = req.body.premium_cost;
+
+
+        var newTaxi = {
+            "name": name,
+            "logo": logo,
+            "type": type,
+            "query_id": query_id,
+            "website": website,
+            "phone_number": phone_number,
+            "short_description": short_description,
+            "min_cost": min_cost,
+            "one_cost": one_cost,
+            "surb_cost": surb_cost,
+            "animal_cost": animal_cost,
+            "premium_cost": premium_cost
+        };
+
+        mysqlPool.query(query, [newTaxi], function (err, rows) {
+            if (err) {
+                reject(err);
+            } else {
+                resolve();
+            }
+        });
+
+
+    });
 };
 
 taxi.prototype.calcCost = function (req, res, callback) {
+    var urls = [];
+    var results = [];
+    return new Promise(function (resolve, reject) {
+        var query = "SELECT * from taxis";
 
-
-    var query = "SELECT * from taxis";
-
-    mysqlPool.query(query, function (err, rows) {
-        if (err) {
-            callback(true, err);
-        } else {
-            for (var i = 0; i < rows.length; i++) {
-                if (rows[i]['type'] == 'rainbow') {
-                    urls.push({
-                        'url': 'https://rainbow.evos.in.ua/ru-RU/' + rows[i]['query_id'] + '/WebOrders/CalcCost',
-                        'id': rows[i]['id']
-                    });
-                }
-            }
-            // var iterator  =0;
-            async.each(
-                urls,
-                function (url, callback) {
-
-                    request.post({
-                            url: url['url'],
-                            form: 'LocationFrom.Address=' + encodeURIComponent(req.query.fromAddress) + '&LocationFrom.AddressNumber=' + encodeURIComponent(req.query.fromNumber) + '&LocationFrom.Entrance=&LocationFrom.IsStreet=True&LocationFrom.Comment=&IsRouteUndefined=false&LocationsTo%5B0%5D.Address=' + encodeURIComponent(req.query.toAddress) + '&LocationsTo%5B0%5D.AddressNumber=' + encodeURIComponent(req.query.toNumber) + '&LocationsTo%5B0%5D.IsStreet=True&ReservationType=None&ReservationDate=&ReservationTime=&IsWagon=false&IsMinibus=false&IsPremium=false&IsConditioner=false&IsBaggage=false&IsAnimal=false&IsCourierDelivery=false&IsReceipt=false&UserFullName=&UserPhone=&AdditionalCost=&OrderUid=&Cost=&UserBonuses=&calcCostInProgress=False&IsPayBonuses=False&IsManualCalc=False'
-                        },
-                        function (err, httpResponse, body) {
-                            var $ = cheerio.load(body),
-                                cost = $("#dCostBlock").text();
-
-                            // results.push(2);
-
-                            results.push({
-                                'service_id': url['id'],
-
-                                'service_cost': cost
-                            })
-                        })
-                    callback();
-                },
-                function (err) {
-                    console.log("Hello");
-                    if (err) {
-                        console.log("Error grabbing data");
-                    } else {
-                        console.log(results);
+        mysqlPool.query(query, function (err, rows) {
+            if (err) {
+                reject(err);
+            } else {
+                for (var i = 0; i < rows.length; i++) {
+                    if (rows[i]['type'] == 'rainbow') {
+                        urls.push({
+                            'url': 'https://rainbow.evos.in.ua/ru-RU/' + rows[i]['query_id'] + '/WebOrders/CalcCost',
+                            'id': rows[i]['id']
+                        });
                     }
                 }
-            );
 
+                async.each(
+                    urls,
+                    function (url, callback) {
 
-            setTimeout(function (args) {
-                console.log(results);
-            }, 3000)
+                        request.post({
+                                url: url['url'],
+                                form: 'LocationFrom.Address=' + encodeURIComponent(req.query.fromAddress) + '&LocationFrom.AddressNumber=' + encodeURIComponent(req.query.fromNumber) + '&LocationFrom.Entrance=&LocationFrom.IsStreet=True&LocationFrom.Comment=&IsRouteUndefined=false&LocationsTo%5B0%5D.Address=' + encodeURIComponent(req.query.toAddress) + '&LocationsTo%5B0%5D.AddressNumber=' + encodeURIComponent(req.query.toNumber) + '&LocationsTo%5B0%5D.IsStreet=True&ReservationType=None&ReservationDate=&ReservationTime=&IsWagon=false&IsMinibus=false&IsPremium=false&IsConditioner=false&IsBaggage=false&IsAnimal=false&IsCourierDelivery=false&IsReceipt=false&UserFullName=&UserPhone=&AdditionalCost=&OrderUid=&Cost=&UserBonuses=&calcCostInProgress=False&IsPayBonuses=False&IsManualCalc=False'
+                            },
+                            function (err, httpResponse, body) {
+                                var $ = cheerio.load(body),
+                                    cost = $("#dCostBlock").text();
 
+                                cost = parseInt(cost);
 
-        }
+                                results.push({
+                                    'service_id': url['id'],
+                                    'service_cost': cost
+                                })
+                            })
+                        callback();
+                    },
+                    function (err) {
+                    }
+                );
+                let timeout = urls.length * 500;
+                if (timeout < 2000) {
+                    timeout = 2000;
+                } else if (timeout > 5000) {
+                    timeout = 5000;
+                }
+                setTimeout(function (args) {
+                    resolve(results);
+                }, timeout)
+            }
 
-    })
+        });
+    });
 
 
     // request.post({
@@ -208,30 +288,6 @@ taxi.prototype.calcCost = function (req, res, callback) {
     // })
 
 }
-//
-// function makeRequest(url,  callback) {
-//     // request object
-//     var req = https.request(url, function (res) {
-//         var result = '';
-//         res.on('data', function (chunk) {
-//             result += chunk;
-//         });
-//         res.on('end', function () {
-//             console.log(result);
-//         });
-//         res.on('error', function (err) {
-//             console.log(err);
-//         })
-//     });
-//
-// // req error
-//     req.on('error', function (err) {
-//         console.log(err);
-//     });
-//
-// //send request witht the postData form
-// //     req.write(postData);
-//     req.end();
-// }
+
 
 module.exports = new taxi();
