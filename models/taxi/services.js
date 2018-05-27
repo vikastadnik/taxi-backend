@@ -67,9 +67,12 @@ taxi.prototype.addNewComment = function (req, res) {
         var taxi_id = req.body.taxi_id;
         var text = req.body.text;
         var rate = req.body.rate;
-        var date = Date.now();
+        var date = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
         var query = "INSERT INTO taxi_comment (id, user_id, taxi_id, text, rate, date) values ( '',  '" + user_id + "',  '" + taxi_id + "',  '" + text + "',  '" + rate + "',  '" + date + "')";
+
+
+        var queryComment = "select  u.firstName, u.lastName from  users u where u.id = ?";
 
 
         mysqlPool.query(query, function (err, rows) {
@@ -77,7 +80,33 @@ taxi.prototype.addNewComment = function (req, res) {
             if (err) {
                 reject(err);
             } else {
-                resolve(req.body);
+                mysqlPool.query(queryComment, user_id, function (err, data) {
+                    if (err) {
+                        reject(err)
+                    } else{
+                        console.log(data);
+
+                        if ( data.length===0){
+                            reject(err);
+                        }
+                        else{
+                            var newComment = {
+                                "taxi_id": taxi_id,
+                                "text": text,
+                                "rate": parseInt(rate),
+                                "date": date,
+                                "firstName": data[0].firstName,
+                                "lastName": data[0].lastName
+                            }
+                            resolve(newComment);
+                        }
+
+
+                    }
+
+                })
+
+
             }
         });
     });
