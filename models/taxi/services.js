@@ -15,16 +15,20 @@ var taxi = function () {
 
 taxi.prototype.getAllTaxis = function (req, res, callback) {
 
-    var query = "select t.*, AVG(r.rate) as rate from Taxis t left join Taxi_Comment r ON r.taxi_id = t.id GROUP BY t.id";
+    var query = "select t.*, AVG(r.rate) as rate from taxis t left join taxi_comment r ON r.taxi_id = t.id GROUP BY t.id";
 
-    mysqlPool.query(query, function (err, rows) {
-        if (err) {
-            callback(true, err);
-        } else {
-            callback(null, rows);
-        }
+    return new Promise(function (resolve, reject) {
+        mysqlPool.query(query, function (err, rows) {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(rows);
+            }
 
-    })
+        })
+    });
+
+
 };
 
 taxi.prototype.getTaxiByID = function (req) {
@@ -112,14 +116,14 @@ taxi.prototype.addNewTaxi = function (req) {
         var logo = req.body.logo;
         var type = req.body.type;
         var query_id = req.body.query_id;
-        var website = req.body.website;
-        var phone_number = req.body.phone_number;
-        var short_description = req.body.short_description;
-        var min_cost = req.body.min_cost;
-        var one_cost = req.body.one_cost;
-        var surb_cost = req.body.surb_cost;
-        var animal_cost = req.body.animal_cost;
-        var premium_cost = req.body.premium_cost;
+        var website = req.body.website||null;
+        var phone_number = req.body.phone_number||null;
+        var short_description = req.body.short_description||null;
+        var min_cost = req.body.min_cost||null;
+        var one_cost = req.body.one_cost||null;
+        var surb_cost = req.body.surb_cost||null;
+        var animal_cost = req.body.animal_cost||null;
+        var premium_cost = req.body.premium_cost||null;
 
 
         var newTaxi = [[
@@ -167,6 +171,7 @@ taxi.prototype.editTaxi = function (req) {
         var surb_cost = req.body.surb_cost;
         var animal_cost = req.body.animal_cost;
         var premium_cost = req.body.premium_cost;
+
 
 
         var newTaxi = {

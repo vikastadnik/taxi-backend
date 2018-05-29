@@ -18,11 +18,19 @@ var mysql =	require("mysql");
 var DB = function(){};
 
 DB.prototype.createPool = function(){
+    // return mysql.createPool({
+    //     host     : 'localhost',
+    //     user     : 'root',
+    //     database: 'taxi',
+    //     password : '',
+    //     connectionLimit : 100
+    // });
+
     return mysql.createPool({
-        host     : 'localhost',
-        user     : 'root',
-        database: 'taxi',
-        password : '',
+        host     : 'seopro.mysql.tools',
+        user     : 'seopro_farmak2',
+        database: 'seopro_farmak2',
+        password : 'echat52u',
         connectionLimit : 100
     });
 }

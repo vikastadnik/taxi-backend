@@ -5,14 +5,16 @@ var express = require('express'),
 
 router.get('/services', function (req, res, next) {
 
-    service.getAllTaxis(req, res, function (err, results, data) {
-        if (err) {
-            res.json({'error': true, 'message': 'Ошибка при получении данных', 'data': data});
-        } else {
-            res.send(results);
-        }
+    service.getAllTaxis(req)
+        .then(function (value) {
+        res.json(value);
     })
+        .catch(function (reason) {
+            res.status(500);
+            res.json({'error': true, 'data': reason});
+        })
 });
+
 
 router.post('/services', function (req, res, next) {
 
