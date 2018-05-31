@@ -1,21 +1,21 @@
-var app = require('express')();
+const app = require('express')();
 
-var mysql = require("../db.js"),
+const mysql = require("../db.js"),
     https = require('https'),
     async = require('async'),
     cheerio = require("cheerio"),
     mysqlPool = mysql.createPool();
 
-var request = require('request');
-var querystring = require('querystring');
+const request = require('request');
+const querystring = require('querystring');
 
 
-var taxi = function () {
+const taxi = function () {
 };
 
 taxi.prototype.getAllTaxis = function (req, res, callback) {
 
-    var query = "select t.*, AVG(r.rate) as rate from taxis t left join taxi_comment r ON r.taxi_id = t.id GROUP BY t.id";
+    const query = "select t.*, AVG(r.rate) as rate from taxis t left join taxi_comment r ON r.taxi_id = t.id GROUP BY t.id";
 
     return new Promise(function (resolve, reject) {
         mysqlPool.query(query, function (err, rows) {
@@ -34,15 +34,15 @@ taxi.prototype.getAllTaxis = function (req, res, callback) {
 taxi.prototype.getTaxiByID = function (req) {
 
     return new Promise(function (resolve, reject) {
-        var id = req.params.id;
-        var query = "select * from taxis where id = ?";
+        const id = req.params.id;
+        const query = "select * from taxis where id = ?";
 
         mysqlPool.query(query, id, function (err, rows) {
             if (err) {
                 reject(err);
             } else {
 
-                var queryComment = "select c.*, u.firstName, u.lastName from taxi_comment c  join users u ON c.user_id = u.id where c.taxi_id = ? order by date desc";
+                let queryComment = "select c.*, u.firstName, u.lastName from taxi_comment c  join users u ON c.user_id = u.id where c.taxi_id = ? order by date desc";
 
                 mysqlPool.query(queryComment, id, function (err, rowsComment) {
                     if (err) {
@@ -63,16 +63,16 @@ taxi.prototype.getTaxiByID = function (req) {
 
 taxi.prototype.addNewComment = function (req, res) {
     return new Promise(function (resolve, reject) {
-        var user_id = req.body.user_id;
-        var taxi_id = req.body.taxi_id;
-        var text = req.body.text;
-        var rate = req.body.rate;
-        var date = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        const user_id = req.body.user_id;
+        const taxi_id = req.body.taxi_id;
+        const text = req.body.text;
+        const rate = req.body.rate;
+        const date = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
-        var query = "INSERT INTO taxi_comment (id, user_id, taxi_id, text, rate, date) values ( '',  '" + user_id + "',  '" + taxi_id + "',  '" + text + "',  '" + rate + "',  '" + date + "')";
+        const query = "INSERT INTO taxi_comment (id, user_id, taxi_id, text, rate, date) values ( '',  '" + user_id + "',  '" + taxi_id + "',  '" + text + "',  '" + rate + "',  '" + date + "')";
 
 
-        var queryComment = "select  u.firstName, u.lastName from  users u where u.id = ?";
+        const queryComment = "select  u.firstName, u.lastName from  users u where u.id = ?";
 
 
         mysqlPool.query(query, function (err, rows) {
@@ -88,7 +88,7 @@ taxi.prototype.addNewComment = function (req, res) {
                             reject(err);
                         }
                         else {
-                            var newComment = {
+                            const newComment = {
                                 "taxi_id": taxi_id,
                                 "text": text,
                                 "rate": parseInt(rate),
@@ -110,23 +110,23 @@ taxi.prototype.addNewComment = function (req, res) {
 
 taxi.prototype.addNewTaxi = function (req) {
     return new Promise(function (resolve, reject) {
-        var query = "INSERT INTO `taxis` (`name`, `logo`, `type`, `query_id`, `website`, `phone_number`, `short_description`, `min_cost`, `one_cost`, `surb_cost`, `animal_cost`, `premium_cost`) VALUES ?";
+        const query = "INSERT INTO `taxis` (`name`, `logo`, `type`, `query_id`, `website`, `phone_number`, `short_description`, `min_cost`, `one_cost`, `surb_cost`, `animal_cost`, `premium_cost`) VALUES ?";
 
-        var name = req.body.name;
-        var logo = req.body.logo;
-        var type = req.body.type;
-        var query_id = req.body.query_id;
-        var website = req.body.website||null;
-        var phone_number = req.body.phone_number||null;
-        var short_description = req.body.short_description||null;
-        var min_cost = req.body.min_cost||null;
-        var one_cost = req.body.one_cost||null;
-        var surb_cost = req.body.surb_cost||null;
-        var animal_cost = req.body.animal_cost||null;
-        var premium_cost = req.body.premium_cost||null;
+        const name = req.body.name;
+        const logo = req.body.logo;
+        const type = req.body.type;
+        const query_id = req.body.query_id;
+        const website = req.body.website || null;
+        const phone_number = req.body.phone_number || null;
+        const short_description = req.body.short_description || null;
+        const min_cost = req.body.min_cost || null;
+        const one_cost = req.body.one_cost || null;
+        const surb_cost = req.body.surb_cost || null;
+        const animal_cost = req.body.animal_cost || null;
+        const premium_cost = req.body.premium_cost || null;
 
 
-        var newTaxi = [[
+        const newTaxi = [[
             name,
             logo,
             type,
@@ -159,22 +159,22 @@ taxi.prototype.editTaxi = function (req) {
         let query = `UPDATE taxis SET ? WHERE taxis.id = ${taxi_id}`;
 
 
-        var name = req.body.name;
-        var logo = req.body.logo;
-        var type = req.body.type;
-        var query_id = req.body.query_id;
-        var website = req.body.website;
-        var phone_number = req.body.phone_number;
-        var short_description = req.body.short_description;
-        var min_cost = req.body.min_cost;
-        var one_cost = req.body.one_cost;
-        var surb_cost = req.body.surb_cost;
-        var animal_cost = req.body.animal_cost;
-        var premium_cost = req.body.premium_cost;
+        let name = req.body.name;
+        const logo = req.body.logo;
+        const type = req.body.type;
+        const query_id = req.body.query_id;
+        const website = req.body.website;
+        const phone_number = req.body.phone_number;
+        const short_description = req.body.short_description;
+        const min_cost = req.body.min_cost;
+        const one_cost = req.body.one_cost;
+        const surb_cost = req.body.surb_cost;
+        const animal_cost = req.body.animal_cost;
+        const premium_cost = req.body.premium_cost;
 
 
 
-        var newTaxi = {
+        const newTaxi = {
             "name": name,
             "logo": logo,
             "type": type,
@@ -202,20 +202,24 @@ taxi.prototype.editTaxi = function (req) {
 };
 
 taxi.prototype.calcCost = function (req, res, callback) {
-    var urls = [];
-    var results = [];
+    const urls = [];
+    const results = [];
     return new Promise(function (resolve, reject) {
-        var query = "SELECT * from taxis";
+        // const query = "SELECT * from taxis";
+        const query = "select t.*, AVG(r.rate) as rate  from taxis t left join taxi_comment r ON r.taxi_id = t.id GROUP BY t.id";
 
         mysqlPool.query(query, function (err, rows) {
             if (err) {
                 reject(err);
             } else {
-                for (var i = 0; i < rows.length; i++) {
+                for (let i = 0; i < rows.length; i++) {
                     if (rows[i]['type'] == 'rainbow') {
                         urls.push({
                             'url': 'https://rainbow.evos.in.ua/ru-RU/' + rows[i]['query_id'] + '/WebOrders/CalcCost',
-                            'id': rows[i]['id']
+                            'id': rows[i]['id'],
+                            'name': rows[i]['name'],
+                            'rate': rows[i]['rate'],
+                            'logo': rows[i]['logo'],
                         });
                     }
                 }
@@ -229,16 +233,21 @@ taxi.prototype.calcCost = function (req, res, callback) {
                                 form: 'LocationFrom.Address=' + encodeURIComponent(req.query.fromAddress) + '&LocationFrom.AddressNumber=' + encodeURIComponent(req.query.fromNumber) + '&LocationFrom.Entrance=&LocationFrom.IsStreet=True&LocationFrom.Comment=&IsRouteUndefined=false&LocationsTo%5B0%5D.Address=' + encodeURIComponent(req.query.toAddress) + '&LocationsTo%5B0%5D.AddressNumber=' + encodeURIComponent(req.query.toNumber) + '&LocationsTo%5B0%5D.IsStreet=True&ReservationType=None&ReservationDate=&ReservationTime=&IsWagon=false&IsMinibus=false&IsPremium=false&IsConditioner=false&IsBaggage=false&IsAnimal=false&IsCourierDelivery=false&IsReceipt=false&UserFullName=&UserPhone=&AdditionalCost=&OrderUid=&Cost=&UserBonuses=&calcCostInProgress=False&IsPayBonuses=False&IsManualCalc=False'
                             },
                             function (err, httpResponse, body) {
-                                var $ = cheerio.load(body),
-                                    cost = $("#dCostBlock").text();
+                                const $ = cheerio.load(body);
+                                let cost = $("#dCostBlock").text();
 
                                 cost = parseInt(cost);
 
-                                results.push({
-                                    'service_id': url['id'],
-                                    'service_cost': cost
-                                })
-                            })
+                                if (cost){
+                                    results.push({
+                                        'name': url['name'],
+                                        'logo':  url['logo'],
+                                        'service_cost': cost,
+                                        'rate': url['rate'],
+                                    })
+                                }
+
+                            });
                         callback();
                     },
                     function (err) {
@@ -251,6 +260,11 @@ taxi.prototype.calcCost = function (req, res, callback) {
                     timeout = 5000;
                 }
                 setTimeout(function (args) {
+                    results.sort(function(a, b) {
+                        const x = a['service_cost'];
+                        const y = b['service_cost'];
+                        return ((x < y) ? -1 : ((x > y) ? 1 : 0));
+                    });
                     resolve(results);
                 }, timeout)
             }
@@ -258,39 +272,6 @@ taxi.prototype.calcCost = function (req, res, callback) {
         });
     });
 
-
-    // request.post({
-    //     url: 'https://rainbow.evos.in.ua/ru-RU/adfe0530-4bd0-4ac2-98bd-db25ef337af4/WebOrders/CalcCost',
-    //     form: 'LocationFrom.Address='+encodeURIComponent(req.query.fromAddress) +'&LocationFrom.AddressNumber='+  encodeURIComponent(req.query.fromNumber)+'&LocationFrom.Entrance=&LocationFrom.IsStreet=True&LocationFrom.Comment=&IsRouteUndefined=false&LocationsTo%5B0%5D.Address='+ encodeURIComponent(req.query.toAddress)+'&LocationsTo%5B0%5D.AddressNumber='+ encodeURIComponent(req.query.toNumber)+'&LocationsTo%5B0%5D.IsStreet=True&ReservationType=None&ReservationDate=&ReservationTime=&IsWagon=false&IsMinibus=false&IsPremium=false&IsConditioner=false&IsBaggage=false&IsAnimal=false&IsCourierDelivery=false&IsReceipt=false&UserFullName=&UserPhone=&AdditionalCost=&OrderUid=&Cost=&UserBonuses=&calcCostInProgress=False&IsPayBonuses=False&IsManualCalc=False'
-    // }, function (err, httpResponse, body) {
-    //     // console.log(body)
-    // })
-
-    // var r = request.post("https://rainbow.evos.in.ua/ru-RU/adfe0530-4bd0-4ac2-98bd-db25ef337af4/WebOrders/CalcCost", function (err, res, body) {
-    //     console.log(body);
-    // });
-    //
-    // r._form = formData;
-
-
-    // var query =  "SELECT * from taxis";
-
-
-    // mysqlPool.query(query, function (err, rows) {
-    //     if (err) {
-    //         callback(true, err);
-    //     } else{
-    //         for(var i = 0; i < rows.length;i++){
-    //
-    //             if (rows[i]['type'] == 'rainbow'){
-    //                 urls.push('https://rainbow.evos.in.ua/ru-RU/'+rows[i]['query_id']+'/WebOrders/CalcCost');
-    //             }
-    //            console.log(rows[i]['type']);
-    //         }
-    //        makeRequest(urls[0]);
-    //     }
-    //
-    // })
 
 }
 

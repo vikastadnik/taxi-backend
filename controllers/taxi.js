@@ -68,15 +68,15 @@ router.post('/services/comments', function (req, res, next) {
         });
 
 });
-router.get('/calculate', function (req, res, next) {
+router.get('/cost', function (req, res, next) {
 
     service.calcCost(req, res)
         .then(function (data) {
+            console.log(data);
             res.json(data);
         })
         .catch(function (err) {
             res.status(500);
-            console.log(err);
             res.json({'error': true, 'data': err});
         })
 });
